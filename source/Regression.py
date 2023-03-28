@@ -45,11 +45,11 @@ def regression():
                         st.write("# ")
                         st.markdown("<p style='text-align: left; color: black; font-size:20px;'><span style='font-weight: bold'>Hyperparameter</span></p>", unsafe_allow_html=True)
                     with col22:
-                        preview_data_1 = vAR_simple_train_file_data.drop('Selling Price (in $1000s)',axis = 1)
+                        preview_data_1 = vAR_simple_train_file_data.drop('Selling Price (in $1000s)',axis=1)
                         vAR_data_colunms = preview_data_1.columns
-                        st.multiselect("",vAR_data_colunms)
+                        vAR_Features = st.multiselect("",vAR_data_colunms)
                     with col222:      
-                        vAR_perameter = st.slider('', 0)
+                        vAR_perameter = st.slider('', min_value=0.05, max_value=0.3,step=0.05)
                     with w3:
                         st.write("# ")
                         st.write("# ")
@@ -74,10 +74,10 @@ def regression():
                             button_placeholder.empty()
                             # Load the training dataset
                             data = vAR_simple_train_file_data
-                            X = data[['Size (in sq ft)','Bedrooms']]
+                            X = data[vAR_Features]
                             y = data[['Selling Price (in $1000s)']]
                             # # splitting X and y into training and testing sets
-                            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+                            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=vAR_perameter, random_state=1)
                             # Create a linear regression object
                             lr = LinearRegression()
                             # Create and train the model
@@ -105,12 +105,18 @@ def regression():
                                     # Load the training dataset
                                     data = vAR_simple_train_file_data
                                     vAR_test_data = pd.read_csv(vAR_simple_test_file)
-
-                                    X = data.drop(['Selling Price (in $1000s)'],axis=1)
+                                    vAR_test_data_columns = list(vAR_test_data.columns)
+                                    for i in vAR_test_data_columns:
+                                        if i in vAR_Features:
+                                            continue
+                                        else:
+                                            vAR_test_data_columns.remove(i)
+                                    vAR_test_final_data =  vAR_test_data[vAR_test_data_columns]
+                                    X = data[vAR_Features]
                                     y = data['Selling Price (in $1000s)']
 
                                     # # splitting X and y into training and testing sets
-                                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+                                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=vAR_perameter, random_state=1)
 
                                     # Create a linear regression object
                                     lr = LinearRegression()
@@ -118,7 +124,7 @@ def regression():
                                     # Train the model
                                     lr.fit(X_train, y_train)
                                     y=[]
-                                    for i,j in vAR_test_data.iterrows():
+                                    for i,j in vAR_test_final_data.iterrows():
                                         x=list(j.values)
                                         y.append(x)
                                     resfin = []
@@ -126,8 +132,8 @@ def regression():
                                         result = lr.predict([y[i]])
                                         newres = result[0]
                                         resfin.append(newres)
-                                    vAR_test_data['Selling Price (in $1000s)'] = resfin
-                                    st.table(vAR_test_data)
+                                    vAR_test_final_data['Selling Price (in $1000s)'] = resfin
+                                    st.table(vAR_test_final_data)
                                 
         if vAR_problem == "Predicting Mileage":
             with col1:
@@ -151,9 +157,9 @@ def regression():
                     with col22:
                         preview_data_1 = vAR_multi_train_file_data.drop('Mileage (in mpg)',axis = 1)
                         vAR_data_colunms = preview_data_1.columns
-                        st.multiselect("",vAR_data_colunms)
+                        vAR_Features = st.multiselect("",vAR_data_colunms)
                     with col222:      
-                        vAR_perameter = st.slider('', 0)
+                        vAR_perameter = st.slider('', min_value=0.05, max_value=0.3,step=0.05)
                     with w3:
                         st.write("# ")
                         st.write("# ")
@@ -179,11 +185,11 @@ def regression():
                             # Load the training dataset
                             data = vAR_multi_train_file_data
 
-                            X = data.iloc[:,:-1].values
+                            X = data[vAR_Features]
                             y = data.iloc[:,-1].values
 
                             # # splitting X and y into training and testing sets
-                            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+                            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=vAR_perameter, random_state=1)
 
                             # Create a linear regression object
                             lr = LinearRegression()
@@ -191,46 +197,51 @@ def regression():
                             # Train the model
                             lr.fit(X_train, y_train)
                             st.success("Model Training is successfull")
-                with col1111:
-                    st.write("# ")
-                    st.write("### ")
-                    st.markdown("<p style='text-align: left; color: black; font-size:20px;'><span style='font-weight: bold'>Upload Test Data </span></p>", unsafe_allow_html=True)
+                    with col1111:
+                        st.write("# ")
+                        st.write("### ")
+                        st.markdown("<p style='text-align: left; color: black; font-size:20px;'><span style='font-weight: bold'>Upload Test Data </span></p>", unsafe_allow_html=True)
                     with col2222:
-                            vAR_simple_test_file = st.file_uploader("",type="csv",key='Test') 
-                            if  vAR_simple_test_file is not None:
-                                with col22:
-                                    button_placeholder = st.empty()
-                                    button_clicked = False
-                                    key=2
-                                    while not button_clicked:
-                                        key=key+2
-                                        button_clicked = button_placeholder.button('Test',key=key)
-                                        break
-                                    if button_clicked:
-                                        button_placeholder.empty()
-                                        # Load the training dataset
-                                        data = vAR_multi_train_file_data
-                                        vAR_test_data = pd.read_csv(vAR_simple_test_file)
+                        vAR_simple_test_file = st.file_uploader("",type="csv",key='Test') 
+                        if  vAR_simple_test_file is not None:
+                            button_placeholder = st.empty()
+                            button_clicked = False
+                            key=2
+                            while not button_clicked:
+                                key=key+2
+                                button_clicked = button_placeholder.button('Test',key=key)
+                                break
+                            if button_clicked:
+                                button_placeholder.empty()
+                                # Load the training dataset
+                                data = vAR_multi_train_file_data
+                                vAR_test_data = pd.read_csv(vAR_simple_test_file)
+                                vAR_test_data_columns = list(vAR_test_data.columns)
+                                for i in vAR_test_data_columns:
+                                    if i in vAR_Features:
+                                        continue
+                                    else:
+                                        vAR_test_data_columns.remove(i)
+                                vAR_test_final_data =  vAR_test_data[vAR_test_data_columns]
+                                X = data[vAR_Features]
+                                y = data.iloc[:,-1].values
 
-                                        X = data.iloc[:,:-1].values
-                                        y = data.iloc[:,-1].values
+                                # # splitting X and y into training and testing sets
+                                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=vAR_perameter, random_state=1)
 
-                                        # # splitting X and y into training and testing sets
-                                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+                                # Create a linear regression object
+                                lr = LinearRegression()
 
-                                        # Create a linear regression object
-                                        lr = LinearRegression()
-
-                                        # Train the model
-                                        lr.fit(X_train, y_train)
-                                        y=[]
-                                        for i,j in vAR_test_data.iterrows():
-                                            x=list(j.values)
-                                            y.append(x)
-                                        resfin = []
-                                        for i in range(0,len(y)):
-                                            result = lr.predict([y[i]])
-                                            newres = result[0]
-                                            resfin.append(newres)
-                                        vAR_test_data['Mileage (in mpg)'] = resfin
-                                        st.table(vAR_test_data)
+                                # Train the model
+                                lr.fit(X, y)
+                                y=[]
+                                for i,j in vAR_test_final_data.iterrows():
+                                    x=list(j.values)
+                                    y.append(x)
+                                resfin = []
+                                for i in range(0,len(y)):
+                                    result = lr.predict([y[i]])
+                                    newres = result[0]
+                                    resfin.append(newres)
+                                vAR_test_final_data['Mileage (in mpg)'] = resfin
+                                st.table(vAR_test_final_data)
